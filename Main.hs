@@ -18,10 +18,15 @@ main :: IO ()
 main = do
   putStr ">> "
   s <- getLine
-  case evalInput s of
-    (Left msg) -> putStrLn $ show msg
-    (Right val) -> putStrLn $ show val
-  main
+  if s == "quit"
+  then do
+    putStrLn "quitting..."
+    return ()
+  else do
+    case evalInput s of
+      (Left msg) -> putStrLn $ show msg
+      (Right val) -> putStrLn $ show val
+    main
 
 evalInput :: String -> Either ParseError Integer
 evalInput = parse expr "calculator"
