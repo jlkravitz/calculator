@@ -23,24 +23,8 @@ main = do
     (Right val) -> putStrLn $ show val
   main
 
--- Assumes char is a valid operator
-chToOp :: Char -> Operator
-chToOp c = snd $ fromJust $ find ((== c) . fst) table
-    where table = [('+', Add), ('-', Sub), ('*', Mul), ('/', Div)]
-
-literal :: Parser Integer
-literal = read <$> many1 digit
-
-op :: Parser Operator
-op = chToOp <$> (char '+' <|> char '-' <|> char '*' <|> char '/')
-
-pair :: Parser (Operator, Expr)
-pair = do
-  skipMany space
-  o <- op
-  skipMany space
-  i <- literal
-  return (o, Const i)
+evalInput :: String -> Either ParseError Integer
+evalInput = parse expr "calculator"
 
 expr :: Parser Integer
 expr = do
@@ -50,8 +34,22 @@ expr = do
   eof
   return $ evalExpr (generateExpr (Const first) pairs)
 
-generateExpr :: Expr -> [(Operator, Expr)] -> Expr
-generateExpr = foldl' (\acc (o, e) -> o acc e)
+literal :: Parser Integer
+literal = read <$> many1 digit
+
+pair :: Parser (Operator, Expr)
+pair = do
+  skipMany space
+  o <- op
+  skipMany space
+  i <- literal
+  return (o, Const i)
+
+op :: Parser Operator
+op = chToOp <$> (char '+' <|> char '-' <|> char '*' <|> char '/')
+  where chToOp :: Char -> Operator
+        chToOp c = snd $ fromJust $ find ((== c) . fst) table
+        table = [('+', Add), ('-', Sub), ('*', Mul), ('/', Div)]
 
 evalExpr :: Expr -> Integer
 evalExpr (Const x) = x
@@ -60,6 +58,6 @@ evalExpr (Sub a b) = evalExpr a - evalExpr b
 evalExpr (Mul a b) = evalExpr a * evalExpr b
 evalExpr (Div a b) = (evalExpr a) `quot` (evalExpr b)
 
-evalInput :: String -> Either ParseError Integer
-evalInput = parse expr "calculator"
+generateExpr :: Expr -> [(Operator, Expr)] -> Expr
+generateExpr = foldl' (\acc (o, e) -> o acc e)
 
