@@ -1,14 +1,12 @@
 {-# OPTIONS_GHC -Wall #-}
 
-import ExprParser
+import Expr
 
 main :: IO ()
 main = do
   s <- getLine
   if s == "quit"
-  then do
-    putStrLn "quitting..."
-    return ()
+  then return ()
   else do
     case parseExpr "calculator" s of
       (Left msg) -> putStrLn msg

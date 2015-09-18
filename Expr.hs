@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
-module ExprParser (parseExpr, evalExpr) where
+module Expr (parseExpr, evalExpr) where
 
 import Data.List
 import Control.Applicative ((<$>), (*>), (<*))
