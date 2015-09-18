@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
-module Calculator (main) where
 
 import ExprParser
 
