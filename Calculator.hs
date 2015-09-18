@@ -5,7 +5,6 @@ import ExprParser
 
 main :: IO ()
 main = do
-  putStr ">> "
   s <- getLine
   if s == "quit"
   then do
