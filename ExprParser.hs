@@ -13,12 +13,12 @@ data Expr = Const Integer
           deriving Show
 
 expr :: Parser Expr
-expr = expr' <* eof
+expr = skipMany space *> expr' <* eof
 
 expr' :: Parser Expr
 expr' = do
-  skipMany space
   first <- literal <|> parenthesizedExpr
+  skipMany space
   pairs <- many pair
   let literals  = first:map snd pairs
       operators = map fst pairs
@@ -32,15 +32,15 @@ parenthesizedExpr =
   char '(' *>
     skipMany space *>
       expr'
-    <* char ')'
-  <* skipMany space
+    <* skipMany space
+  <* char ')'
 
 pair :: Parser (Operator, Expr)
 pair = do
-  skipMany space
   o <- op
   skipMany space
   e <- literal <|> parenthesizedExpr
+  skipMany space
   return (o, e)
 
 op :: Parser Operator
