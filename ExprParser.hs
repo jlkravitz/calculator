@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
-module Main where
+module ExprParser (expr, evalExpr) where
 
 import Data.List
 import Control.Applicative ((<$>))
@@ -11,23 +11,6 @@ data Operator = Add | Sub | Mul | Div deriving Show
 data Expr = Const Integer
           | Op Operator Expr Expr
           deriving Show
-
-main :: IO ()
-main = do
-  putStr ">> "
-  s <- getLine
-  if s == "quit"
-  then do
-    putStrLn "quitting..."
-    return ()
-  else do
-    case evalInput s of
-      (Left msg) -> putStrLn $ show msg
-      (Right val) -> putStrLn $ show $ evalExpr val
-    main
-
-evalInput :: String -> Either ParseError Expr
-evalInput = parse expr "calculator"
 
 expr :: Parser Expr
 expr = do
@@ -85,8 +68,8 @@ precedence Mul = 1
 precedence Div = 1
 
 performOperation :: Operator -> Integer -> Integer -> Integer
-performOperation Add x y = x + y
+performOperation Add x y = y + x
 performOperation Sub x y = y - x
-performOperation Mul x y = x * y
-performOperation Div x y = x `quot` y
+performOperation Mul x y = y * x
+performOperation Div x y = y `quot` x
 
