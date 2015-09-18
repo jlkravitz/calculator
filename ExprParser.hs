@@ -2,7 +2,7 @@
 module ExprParser (expr, evalExpr) where
 
 import Data.List
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (*>), (<*))
 import Text.ParserCombinators.Parsec
 import Data.Maybe
 
@@ -13,25 +13,35 @@ data Expr = Const Integer
           deriving Show
 
 expr :: Parser Expr
-expr = do
+expr = expr' <* eof
+
+expr' :: Parser Expr
+expr' = do
   skipMany space
-  first <- literal
+  first <- literal <|> parenthesizedExpr
   pairs <- many pair
-  eof
-  let literals  = Const first:map (Const . snd) pairs
+  let literals  = first:map snd pairs
       operators = map fst pairs
   return $ buildExpr literals operators
 
-literal :: Parser Integer
-literal = read <$> many1 digit
+literal :: Parser Expr
+literal = (Const . read) <$> many1 digit
 
-pair :: Parser (Operator, Integer)
+parenthesizedExpr :: Parser Expr
+parenthesizedExpr =
+  char '(' *>
+    skipMany space *>
+      expr'
+    <* char ')'
+  <* skipMany space
+
+pair :: Parser (Operator, Expr)
 pair = do
   skipMany space
   o <- op
   skipMany space
-  i <- literal
-  return (o, i)
+  e <- literal <|> parenthesizedExpr
+  return (o, e)
 
 op :: Parser Operator
 op = chToOp <$> (char '+' <|> char '-' <|> char '*' <|> char '/')
