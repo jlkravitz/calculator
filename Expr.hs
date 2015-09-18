@@ -65,9 +65,9 @@ op = chToOp <$> (char '+' <|> char '-' <|> char '*' <|> char '/')
 ----------  Building Expressions with the Shunting-Yard algorithm ----------
 
 buildExpr :: [Expr] -> [Operator] -> [Expr] -> [Operator] -> Expr
-buildExpr (x:xs) (y:ys) litStack opStack = buildExpr xs ys (x:litStack') (y:opStack')
-  where (litStack', opStack') = combineHigherPrecedence litStack opStack y
-buildExpr [] [] litStack opStack = combineExpressions litStack opStack
+buildExpr (x:xs) (y:ys) operandStack operatorStack = buildExpr xs ys (x:operandStack') (y:operatorStack')
+  where (operandStack', operatorStack') = combineHigherPrecedence operandStack operatorStack y
+buildExpr [] [] operandStack operatorStack = combineExpressions operandStack operatorStack
 buildExpr _ _ _ _ = error "Something went horribly wrong!"
 
 -- Combine all expressions involving precedences higher than the given operator.
