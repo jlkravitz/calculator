@@ -20,7 +20,7 @@ data Expr = Literal Integer
 parseExpr :: SourceName -> String -> Either String Expr
 parseExpr srcName s =
   case parse exprParser srcName s of
-    (Left msg) -> (Left $ show msg)
+    (Left msg) -> Left $ show msg
     (Right val) -> Right val
 
 exprParser :: Parser Expr
@@ -32,9 +32,9 @@ expr = do
   first <- literal <|> parenthesizedExpr
   skipMany space
   pairs <- many pair
-  let literals  = first:map snd pairs
+  let operands  = map snd pairs
       operators = map fst pairs
-  return $ buildExpr literals operators
+  return $ buildExpr operands operators [first] []
 
 literal :: Parser Expr
 literal = (Literal . read) <$> many1 digit
@@ -64,14 +64,14 @@ op = chToOp <$> (char '+' <|> char '-' <|> char '*' <|> char '/')
 
 ----------  Building Expressions with the Shunting-Yard algorithm ----------
 
-buildExpr :: [Expr] -> [Operator] -> Expr
-buildExpr (first:operands) operators = evalExpr' operands operators [first] []
-  where evalExpr' (x:xs) (y:ys)  litStack opStack = evalExpr' xs ys (x:litStack') (y:opStack')
-          where (litStack', opStack') = combineHigherPrecedence litStack opStack y
-        evalExpr' [] [] litStack opStack = combineExpressions litStack opStack
-        evalExpr' _ _ _ _ = error "Something went horribly wrong!"
-buildExpr _ _ = error "Something went horribly wrong!"
+buildExpr :: [Expr] -> [Operator] -> [Expr] -> [Operator] -> Expr
+buildExpr (x:xs) (y:ys) litStack opStack = buildExpr xs ys (x:litStack') (y:opStack')
+  where (litStack', opStack') = combineHigherPrecedence litStack opStack y
+buildExpr [] [] litStack opStack = combineExpressions litStack opStack
+buildExpr _ _ _ _ = error "Something went horribly wrong!"
 
+-- Combine all expressions involving precedences higher than the given operator.
+-- Return the new expression and operator stacks.
 combineHigherPrecedence :: [Expr] -> [Operator] -> Operator -> ([Expr], [Operator])
 combineHigherPrecedence (a:b:xs) (y:ys) curOp
   | precedence y >= precedence curOp = combineHigherPrecedence (Op y a b:xs) ys curOp
